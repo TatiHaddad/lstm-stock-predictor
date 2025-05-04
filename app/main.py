@@ -25,7 +25,10 @@ app = FastAPI(
 model = load_model("model/model_lstm.h5")
 data_max = np.load("model/scaler.npy")  # Carregando data_max_ salvo
 scaler = MinMaxScaler()
-scaler.min_, scaler.scale_ = 0, 1 / data_max  # reconstrução manual para inverter
+
+#Reconstrução do scaler
+scaler.min_ = 0  # O valor mínimo é 0
+scaler.scale_ = 1 / data_max  # O valor de scale_ é o inverso do valor carregado
 
 # Modelo de entrada (opcional)
 class PredictRequest(BaseModel):
@@ -59,6 +62,7 @@ def gerar_grafico(y_true, y_pred):
 # Endpoint para previsão de preços
 @app.post("/predict/")
 def predict(request: PredictRequest):
+    
     try:
         # 1. Download dados
         df = yf.download(request.symbol, start=request.start, end=request.end)[['Close']].dropna()
@@ -73,14 +77,16 @@ def predict(request: PredictRequest):
             )
 
         # 2. Prepara os dados
-        scaled_data = scaler.fit_transform(df)
+        scaled_data = scaler.transform(df)  # Use 'transform' em vez de 'fit_transform' aqui
         X, y = [], []
         for i in range(request.lookback, len(scaled_data)):
             X.append(scaled_data[i - request.lookback:i, 0])
             y.append(scaled_data[i, 0])
+
         X = np.array(X)
-        X = np.reshape(X, (X.shape[0], X.shape[1], 1))
+        X = np.reshape(X, (X.shape[0], X.shape[1], 1))  # Adicionando a dimensão de features (1)
         y = np.array(y)
+
 
         # 3. Faz predição
         y_pred = model.predict(X)

@@ -3,9 +3,12 @@ import yfinance as yf # yfinance para baixar os dados do Yahoo Finance
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler # MinMaxScaler para normalizar os dados
-from tensorflow.keras.models import Sequential # Keras - Sequential para construir o modelo de rede Neural LSTM
+from tensorflow.keras.models import Sequential, load_model # Keras - Sequential para construir o modelo de rede Neural LSTM e load_model
 from tensorflow.keras.layers import LSTM, Dense # Keras - LSTM e Dense para construir o modelo de rede Neural LSTM
 import os # Para salvar e manipular os diretórios e salvar os arquivos (o modelo treinado )
+import json
+from evaluate_model import avaliar_modelo
+
 
 
 ### Função para baixar os dados históricos de ações do Yahoo Finance
@@ -50,6 +53,13 @@ def train_and_save_model(symbol='AAPL'):
     df = download_data(symbol)
     X, y, scaler = prepare_data(df)
 
+    #Separando treino e teste (80% treino, 20% teste)
+    split_idx = int(len(X) * 0.8)
+    X_train, X_test = X[:split_idx], X[split_idx:]
+    y_train, y_test = y[:split_idx], y[split_idx:]
+
+
+    # Cria o modelo LSTM
     model = Sequential()
     model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
     model.add(LSTM(units=50))
@@ -74,17 +84,46 @@ def train_and_save_model(symbol='AAPL'):
 # volta para o intervalo original.
 
     model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(X, y, epochs=10, batch_size=32)
+
+    #Treinamento
+    model.fit(X_train, y_train, epochs=10, batch_size=32)
+
 
 ### Compila o modelo com otimizador Adam e erro quadrático médio.
 # Treina com 10 épocas e batch size de 32.
 
+    # Faz previsões
+    y_pred = model.predict(X_test)
+
+    # Avaliação com gráfico
+    avaliar_modelo(y_test, y_pred, scaler=scaler, salvar_grafico=True)
 
 
-    ### Salva o modelo e o scaler
+    #Cria pasta se não existir 
     os.makedirs("model", exist_ok=True)
+    
+    # Salva o modelo treinado como .h5 
     model.save("model/model_lstm.h5")
+
+    #SAlva o scaler como .npye
     np.save("model/scaler.npy", scaler.data_max_)
+
+    # Reverter normalização para salvar resultados reais
+    y_test_orig = y_test * scaler.data_max_[0]
+    y_pred_orig = y_pred.flatten() * scaler.data_max_[0]
+
+    # CSV com valores reais e previstos
+    df_results = pd.DataFrame({
+        'Real': y_test_orig,
+        'Previsto': y_pred_orig
+    })
+    df_results.to_csv("model/resultados.csv", index=False)
+
+    # Exportar JSON para API usar no Swagger
+    resultados_json = df_results.to_dict(orient="records")
+    with open("model/resultados.json", "w") as f:
+        json.dump(resultados_json, f, indent=2)
+
 
 ### Salva o modelo treinado e o "máximo dos dados" do scaler para usar depois na inferência.
 
