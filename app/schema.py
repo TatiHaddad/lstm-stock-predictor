@@ -1,5 +1,5 @@
 ### Define o schema da requisição e resposta  da API
-from pydantic import BaseModel # Pydantic para validação de dados
+from pydantic import BaseModel, Field  # Pydantic para validação de dados e Filed para definir campos
 from typing import Optional # Optional para definir campos opcionais
 
 
@@ -10,7 +10,8 @@ from typing import Optional # Optional para definir campos opcionais
 
 # Modelo de Entrada (Request) para requisição da previsão
 class StockRequest(BaseModel):
-    symbol: str # O símbolo da ação para a qual será feita a previsão
+    symbol: str = Field(..., title="Símbolo da Ação", description="Símbolo da ação para a qual será feita a previsão, como 'AAPL' ou 'GOOG'.")
+
 
     class Config:
         schema_extra = {
@@ -22,11 +23,13 @@ class StockRequest(BaseModel):
 
 # Modelo de Saída (Response) para resposta da previsão
 class StockResponse(BaseModel):
-    predicted_price: float  # Preço previsto para a ação
+    predicted_price: float = Field(..., title="Preço Previsto", description="O preço previsto para a ação com base no modelo.")
+    error: Optional[str] = Field(None, title="Mensagem de Erro", description="Mensagem de erro caso o modelo não consiga realizar a previsão.")
 
     class Config:
         schema_extra = {
             "example": {
-                "predicted_price": 150.25,  # Exemplo de preço previsto
+                "predicted_price": 150.75,  # Exemplo de preço previsto para a ação
+                "error": None,  # Se não houver erro, o campo pode ser None
             }
         }
