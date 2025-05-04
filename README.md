@@ -48,14 +48,15 @@ stock_predictor_lstm/
 
 
 
-Instalação
+# Instalação
 Clone este repositório:
 
 git clone https://github.com/TatiHaddad/lstm-stock-predictor.git
 cd lstm-stock-predictor
 
 
-Crie um ambiente virtual e instale as dependências:
+# Crie um ambiente virtual e instale as dependências:
+
 python3 -m venv venv
 source venv/bin/activate  # No Windows use venv\Scripts\activate
 pip install -r requirements.txt
@@ -63,7 +64,7 @@ pip install -r requirements.txt
 
 
 Como Rodar
-1. Treinamento do Modelo
+# Treinamento do Modelo
 Para treinar o modelo LSTM com os dados de ações, execute o seguinte comando:
 
 python model/train.py
@@ -72,7 +73,7 @@ Essa etapa irá baixar os dados históricos de preços da ação APPLE (usando a
 
 
 
-2. Iniciar a API
+# Iniciar a API
 A API está desenvolvida com FastAPI e pode ser executada com o comando abaixo:
 
 uvicorn app.main:app --reload
@@ -80,7 +81,7 @@ A API estará disponível em http://127.0.0.1:8000 e a documentação da API pod
 
 
 
-3. Fazer Previsões
+# Fazer Previsões
 A API possui um endpoint POST /predict/ onde você pode enviar uma solicitação para obter previsões de preços de ações. Exemplo de corpo de solicitação:
 
 json
@@ -93,7 +94,7 @@ json
 }
 
 
-4. Docker
+# Docker
 Se preferir, você pode executar o projeto dentro de um contêiner Docker. Para isso, use o comando:
 
 docker build -t stock_predictor_lstm .
@@ -101,26 +102,26 @@ docker run -p 8000:8000 stock_predictor_lstm
 A API será disponibilizada em http://127.0.0.1:8000.
 
 
-Dependências
+# Dependências
 As dependências estão listadas em requirements.txt. Para instalar:
 
 pip install -r requirements.txt
 
 
-Modelos e Métricas
+# Modelos e Métricas
 O modelo utiliza uma rede LSTM para capturar padrões temporais nos dados de preços das ações.
 
 O desempenho do modelo é avaliado com as seguintes métricas:
 
-MAE (Erro Médio Absoluto)
+* MAE (Erro Médio Absoluto)
 
-RMSE (Raiz do Erro Quadrático Médio)
+* RMSE (Raiz do Erro Quadrático Médio)
 
-R² (Coeficiente de Determinação)
+* R² (Coeficiente de Determinação)
 
 A avaliação do modelo pode ser feita diretamente na API, que retornará as métricas de desempenho juntamente com a previsão.
 
 
 
-Escalabilidade e Deploy
+# Escalabilidade e Deploy
 Este projeto está preparado para ser escalável com o uso de contêineres Docker, permitindo fácil deploy em ambientes de nuvem como AWS, Google Cloud, ou Azure. O deploy em nuvem permitirá o uso da API em produção, acessível via URL pública.
