@@ -1,79 +1,50 @@
-### Predição com o modelo salvo: Carrega o modelo salvo e faz a previsão
-
 import os
 import numpy as np
-from tensorflow.keras.models import load_model  # Keras - load_model para carregar o modelo salvo
-from tensorflow.keras.models import Sequential  # Keras - Sequential para construir o modelo de rede Neural LSTM    
-from sklearn.preprocessing import MinMaxScaler  # MinMaxScaler para normalizar os dados
-import yfinance as yf   
+from tensorflow.keras.models import load_model
+import joblib
+from sklearn.preprocessing import MinMaxScaler
 
-### Carrega bibliotecas para inferência, incluindo o modelo salvo.
-
-
+# Caminhos dos arquivos salvos
 MODEL_PATH = "model/model_lstm.h5"
 SCALER_PATH = "model/scaler.npy"
 
-
 def load_scaler():
-    
+    """
+    Carrega o MinMaxScaler salvo como dicionário (com .npy + .item()).
+    """
     if not os.path.exists(SCALER_PATH):
         raise FileNotFoundError(f"Scaler não encontrado em: {SCALER_PATH}")
     
+    # Carregando o scaler salvo com np.save (dicionário)
+    scaler_dict = np.load(SCALER_PATH, allow_pickle=True).item()
 
-    data_max = np.load(SCALER_PATH)
     scaler = MinMaxScaler()
-    scaler.min_, scaler.scale_ = 0, 1 / data_max
+    scaler.min_ = scaler_dict['min_']
+    scaler.scale_ = scaler_dict['scale_']
+    scaler.data_min_ = scaler_dict.get('data_min_', None)
+    scaler.data_max_ = scaler_dict.get('data_max_', None)
+    scaler.data_range_ = scaler_dict.get('data_range_', None)
+    scaler.feature_range = (0, 1)
+    
     return scaler
 
-### Reconstrói o MinMaxScaler com os parâmetros salvos (máximo dos dados), para manter a mesma 
-# escala usada no treinamento.
+def predict_price(input_sequence):
+    """
+    Faz a predição com base na sequência histórica de preços normalizada.
+    """
+    if len(input_sequence) < 1:
+        raise ValueError("A entrada precisa conter ao menos 1 valor.")
 
+    model = load_model(MODEL_PATH)
+    scaler = load_scaler()
 
+    # Formata a sequência de entrada
+    input_data = np.array(input_sequence).reshape(-1, 1)
+    scaled_data = scaler.transform(input_data)
+    X = scaled_data.reshape(1, scaled_data.shape[0], 1)
 
-###Carrega o modelo treinado e o scaler.
-#
-# O modelo é um modelo LSTM treinado para prever preços de ações com base em dados históricos.
-# O scaler é usado para normalizar os dados de entrada antes de fazer previsões e para reverter a normalização após a previsão.
+    # Predição
+    prediction = model.predict(X)
+    predicted_price = scaler.inverse_transform(prediction)
 
-
-def predict_next_price(symbol: str, lookback: int = 60):
-    try:
-        # Verifica se o modelo existe
-        if not os.path.exists(MODEL_PATH):
-            raise FileNotFoundError(f"Modelo não encontrado em: {MODEL_PATH}")
-        
-        
-        # Carrega o modelo e o scaler apenas quando a função for chamada
-        model = load_model(MODEL_PATH)
-        scaler = load_scaler()
-
-        # Baixa os dados
-        df = yf.download(symbol, period=f'{lookback + 1}d')
-        if df.empty or len(df) < lookback + 1:
-            raise ValueError(f"Dados insuficientes para o símbolo '{symbol}'")
-        
-
-        close_prices = df['Close'].values.reshape(-1, 1)
-
-### Baixa os preços recentes para fazer previsão.
-# lookback+1 garante dados suficientes.
-        #Normaliza os dados de entrada
-        scaled_input = scaler.transform(close_prices)
-        last_sequence = scaled_input[-lookback:]
-        X = np.reshape(last_sequence, (1, lookback, 1))
-
-
-        # Faz a predição
-        prediction = model.predict(X)
-        predicted_price = scaler.inverse_transform(prediction)
-
-
-
-        return float(predicted_price[0][0])
-
-    except Exception as e:
-        return {"erro": str(e)}
-
-### Prepara a entrada no formato esperado.
-# Faz a predição e retorna o valor desnormalizado (preço real).
-
+    return float(predicted_price[0][0])
