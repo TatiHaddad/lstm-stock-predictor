@@ -106,7 +106,8 @@ def train_and_save_model(symbol='AAPL'):
     model.save("model/model_lstm.h5")
 
     #SAlva o scaler como .npye
-    np.save("model/scaler.npy", scaler.data_max_)
+    np.save("model/scaler.npy", scaler, allow_pickle=True)
+
 
     # Reverter normalização para salvar resultados reais
     y_test_orig = y_test * scaler.data_max_[0]
