@@ -1,0 +1,10 @@
+#Evitando copiar arquivos desnecessários para o container
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+.env
+.vscode/
+.git
+.gitignore
