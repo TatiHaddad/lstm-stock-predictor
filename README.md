@@ -12,13 +12,19 @@ desde a criação do modelo preditivo até o deploy do modelo em uma API que per
  A previsão é realizada com base em dados históricos de preços de ações, coletados da plataforma **Yahoo Finance**. O modelo é então servido por uma API **FastAPI** que permite que os usuários forneçam dados históricos e recebam previsões dos preços futuros.
 
 
+## Funcionalidades:
+- Treinamento de modelo LSTM com dados históricos de ações
+- Servidor FastAPI com endpoint para previsão
+- Pré-processamento e normalização automática dos dados
+- Container Docker pronto para produção
+
 
 ## Requisitos
 
 Antes de rodar o projeto, certifique-se de ter os seguintes requisitos instalados:
 
 - Python 3.x
-- Docker (opcional, para contêinerização e deploy)
+- Docker (opcional, mas recomendado para contêinerização e deploy)
 
 
 ## Estrutura de Diretórios
@@ -47,7 +53,7 @@ stock_predictor_lstm/
 └── README.md                 # Documentação do projeto
 
 
-
+## Como rodar o projeto:
 # Instalação
 Clone este repositório:
 
@@ -94,12 +100,26 @@ json
 }
 
 
+## Como rodar com o Docker
 # Docker
 Se preferir, você pode executar o projeto dentro de um contêiner Docker. Para isso, use o comando:
-
+##Builda da Imagem:
 docker build -t stock_predictor_lstm .
+
+##Rode o container
 docker run -p 8000:8000 stock_predictor_lstm
 A API será disponibilizada em http://127.0.0.1:8000.
+
+#Endpoints
+Método: POST
+Endpoint: /predict
+Descrição: Faz a previsão do próximo valor com base na sequência de entrada
+
+Exemplo de payload:
+{
+  "data": [135.6, 136.2, 137.8, 138.9, 139.4]
+}
+
 
 
 # Dependências
