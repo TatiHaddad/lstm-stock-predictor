@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from pydantic import BaseModel
 import numpy as np
 import pandas as pd
@@ -10,15 +10,14 @@ from io import BytesIO
 import base64
 import matplotlib.pyplot as plt
 from fastapi.responses import JSONResponse
-from fastapi import HTTPException
 
-#Inicializa o app FastAPI e importa o modelo e schemas
+# Inicializa o app FastAPI e importa o modelo e schemas
 app = FastAPI(
-    title="Modelo preditivo de ações com LSTM", #Título da API
-    description="API para prever preços de ações usando um modelo LSTM treinado com dados históricos.",  # Descrição da API
-    version="1.0.0",  # Versão da API
-    docs_url="/docs",  # URL para acessar o Swagger UI
-    redoc_url="/redoc",  # URL para acessar o ReDoc
+    title="Modelo preditivo de ações com LSTM",
+    description="API para prever preços de ações usando um modelo LSTM treinado com dados históricos.",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # Carrega o modelo e scaler
@@ -26,11 +25,11 @@ model = load_model("model/model_lstm.h5")
 data_max = np.load("model/scaler.npy")  # Carregando data_max_ salvo
 scaler = MinMaxScaler()
 
-#Reconstrução do scaler
-scaler.min_ = 0  # O valor mínimo é 0
-scaler.scale_ = 1 / data_max  # O valor de scale_ é o inverso do valor carregado
+# Reconstrução do scaler
+scaler.min_ = 0
+scaler.scale_ = 1 / data_max
 
-# Modelo de entrada (opcional)
+# Modelo de entrada
 class PredictRequest(BaseModel):
     symbol: str = "AAPL"
     lookback: int = 60
@@ -46,6 +45,7 @@ def avaliar_modelo(y_true, y_pred):
     mape = np.mean(np.abs((y_true - y_pred) / y_true)) * 100
     return {"rmse": rmse, "mae": mae, "mape": mape}
 
+# Função auxiliar para gerar gráfico
 def gerar_grafico(y_true, y_pred):
     plt.figure(figsize=(10, 5))
     plt.plot(y_true, label='Real')
@@ -58,11 +58,9 @@ def gerar_grafico(y_true, y_pred):
     buffer.seek(0)
     return base64.b64encode(buffer.read()).decode("utf-8")
 
-
 # Endpoint para previsão de preços
 @app.post("/predict/")
 def predict(request: PredictRequest):
-    
     try:
         # 1. Download dados
         df = yf.download(request.symbol, start=request.start, end=request.end)[['Close']].dropna()
@@ -77,16 +75,15 @@ def predict(request: PredictRequest):
             )
 
         # 2. Prepara os dados
-        scaled_data = scaler.transform(df)  # Use 'transform' em vez de 'fit_transform' aqui
+        scaled_data = scaler.transform(df)
         X, y = [], []
         for i in range(request.lookback, len(scaled_data)):
             X.append(scaled_data[i - request.lookback:i, 0])
             y.append(scaled_data[i, 0])
 
         X = np.array(X)
-        X = np.reshape(X, (X.shape[0], X.shape[1], 1))  # Adicionando a dimensão de features (1)
+        X = np.reshape(X, (X.shape[0], X.shape[1], 1))
         y = np.array(y)
-
 
         # 3. Faz predição
         y_pred = model.predict(X)
@@ -112,7 +109,7 @@ def predict(request: PredictRequest):
         return result
 
     except HTTPException as e:
-        raise e  # já estruturada corretamente
+        raise e
 
     except Exception as e:
         return JSONResponse(
