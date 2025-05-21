@@ -1,23 +1,30 @@
-
-import os
-import joblib
 import numpy as np
+import joblib
 from tensorflow.keras.models import load_model
-from sklearn.preprocessing import MinMaxScaler
-import pandas as pd
+import os
 
+# Caminhos absolutos relativos à pasta atual
+base_dir = os.path.dirname(__file__)
+model_path = os.path.join(base_dir, "..", "model", "model_lstm.h5")
+scaler_path = os.path.join(base_dir, "..", "model", "scaler.pkl")
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "model", "model_lstm.h5")
-SCALER_PATH = os.path.join(os.path.dirname(__file__), "..", "model", "scaler.pkl")
+# Carrega modelo e scaler na inicialização
+model = load_model(model_path)
+scaler = joblib.load(scaler_path)
 
-model = load_model(MODEL_PATH)
-scaler = joblib.load(SCALER_PATH)
+def predict_next_price(prices: list) -> float:
+    try:
+        # Normaliza os preços
+        prices_array = np.array(prices).reshape(-1, 1)
+        scaled = scaler.transform(prices_array)
 
-def predict_next_price(closing_prices: list) -> float:
-    last_60 = np.array(closing_prices).reshape(-1, 1)
-    last_60_scaled = scaler.transform(last_60)
-    X = np.reshape(last_60_scaled, (1, 60, 1))
-    prediction_scaled = model.predict(X)[0][0]
-    prediction = scaler.inverse_transform([[prediction_scaled]])[0][0]
-    return round(float(prediction), 2)
+        # Prepara a entrada
+        X = np.reshape(scaled, (1, len(prices), 1))
 
+        # Faz a predição
+        prediction_scaled = model.predict(X)
+        prediction = scaler.inverse_transform(prediction_scaled)[0][0]
+
+        return round(float(prediction), 2)
+    except Exception as e:
+        raise RuntimeError(f"Erro ao prever: {str(e)}")
