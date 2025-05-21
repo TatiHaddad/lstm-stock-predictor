@@ -1,50 +1,23 @@
+
 import os
+import joblib
 import numpy as np
 from tensorflow.keras.models import load_model
-import joblib
 from sklearn.preprocessing import MinMaxScaler
+import pandas as pd
 
-# Caminhos dos arquivos salvos
-MODEL_PATH = "model/model_lstm.h5"
-SCALER_PATH = "model/scaler.npy"
 
-def load_scaler():
-    """
-    Carrega o MinMaxScaler salvo como dicionário (com .npy + .item()).
-    """
-    if not os.path.exists(SCALER_PATH):
-        raise FileNotFoundError(f"Scaler não encontrado em: {SCALER_PATH}")
-    
-    # Carregando o scaler salvo com np.save (dicionário)
-    scaler_dict = np.load(SCALER_PATH, allow_pickle=True).item()
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "model", "model_lstm.h5")
+SCALER_PATH = os.path.join(os.path.dirname(__file__), "..", "model", "scaler.pkl")
 
-    scaler = MinMaxScaler()
-    scaler.min_ = scaler_dict['min_']
-    scaler.scale_ = scaler_dict['scale_']
-    scaler.data_min_ = scaler_dict.get('data_min_', None)
-    scaler.data_max_ = scaler_dict.get('data_max_', None)
-    scaler.data_range_ = scaler_dict.get('data_range_', None)
-    scaler.feature_range = (0, 1)
-    
-    return scaler
+model = load_model(MODEL_PATH)
+scaler = joblib.load(SCALER_PATH)
 
-def predict_price(input_sequence):
-    """
-    Faz a predição com base na sequência histórica de preços normalizada.
-    """
-    if len(input_sequence) < 1:
-        raise ValueError("A entrada precisa conter ao menos 1 valor.")
+def predict_next_price(closing_prices: list) -> float:
+    last_60 = np.array(closing_prices).reshape(-1, 1)
+    last_60_scaled = scaler.transform(last_60)
+    X = np.reshape(last_60_scaled, (1, 60, 1))
+    prediction_scaled = model.predict(X)[0][0]
+    prediction = scaler.inverse_transform([[prediction_scaled]])[0][0]
+    return round(float(prediction), 2)
 
-    model = load_model(MODEL_PATH)
-    scaler = load_scaler()
-
-    # Formata a sequência de entrada
-    input_data = np.array(input_sequence).reshape(-1, 1)
-    scaled_data = scaler.transform(input_data)
-    X = scaled_data.reshape(1, scaled_data.shape[0], 1)
-
-    # Predição
-    prediction = model.predict(X)
-    predicted_price = scaler.inverse_transform(prediction)
-
-    return float(predicted_price[0][0])

@@ -1,15 +1,24 @@
-#Evitando copiar arquivos desnecessários para o container
+# Ignora o ambiente virtual local
+.venv/
+venv/
+
+# Cache e artefatos
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Dados locais e arquivos de build
 *.db
+*.sqlite3
 *.h5
 *.npy
-*.csv
-.ipynb_checkpoints/
-notebooks/
+
+# Configs e arquivos ocultos
 .env
-.vscode/
+.DS_Store
+*.log
+
+# Git
 .git
 .gitignore

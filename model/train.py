@@ -1,69 +1,87 @@
-import yfinance as yf
-import pandas as pd
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
+import joblib
 import os
-import json
-from evaluate_model import avaliar_modelo
 
-def download_data(symbol='AAPL', start='2018-01-01', end='2024-01-01'):
-    df = yf.download(symbol, start=start, end=end)
-    df = df[['Close']].dropna()
+# =============================
+# Configurações
+# =============================
+ticker = "BBAS3.SA"
+n_steps = 60
+
+# =============================
+# Função para carregar e limpar o CSV bagunçado
+# =============================
+def load_and_clean_csv(filepath):
+    # Pula as 2 primeiras linhas
+    df_raw = pd.read_csv(filepath, skiprows=2, header=None)
+
+    # Define manualmente as colunas que queremos
+    df_raw.columns = ['Date', 'Close', 'High', 'Low', 'Open', 'Volume']
+
+    # Remove linhas com NaN na coluna 'Date' (que podem ser linhas extras)
+    df = df_raw.dropna(subset=['Date'])
+
+    # Converte 'Date' para datetime e coloca como índice
+    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+
+    # Remove linhas onde a data não foi convertida corretamente (NaT)
+    df = df.dropna(subset=['Date'])
+
+    df.set_index('Date', inplace=True)
+
     return df
 
-def prepare_data(df, lookback=60):
-    scaler = MinMaxScaler()
-    scaled_data = scaler.fit_transform(df)
 
-    X, y = [], []
-    for i in range(lookback, len(scaled_data)):
-        X.append(scaled_data[i-lookback:i, 0])
-        y.append(scaled_data[i, 0])
+# =============================
+# Carrega e limpa os dados
+# =============================
+data_path = os.path.join(os.path.dirname(__file__), "..", "data", "raw", f"{ticker}.csv")
+df = load_and_clean_csv(data_path)
 
-    X, y = np.array(X), np.array(y)
-    X = np.reshape(X, (X.shape[0], X.shape[1], 1))
-    return X, y, scaler
+# Seleciona a coluna Close e remove valores nulos
+df = df[['Close']].dropna()
 
-def train_and_save_model(symbol='AAPL'):
-    df = download_data(symbol)
-    X, y, scaler = prepare_data(df)
+# =============================
+# Normaliza os dados
+# =============================
+scaler = MinMaxScaler()
+scaled_data = scaler.fit_transform(df)
 
-    split_idx = int(len(X) * 0.8)
-    X_train, X_test = X[:split_idx], X[split_idx:]
-    y_train, y_test = y[:split_idx], y[split_idx:]
+# =============================
+# Prepara sequência para LSTM
+# =============================
+X, y = [], []
+for i in range(n_steps, len(scaled_data)):
+    X.append(scaled_data[i - n_steps:i, 0])
+    y.append(scaled_data[i, 0])
+X, y = np.array(X), np.array(y)
+X = np.reshape(X, (X.shape[0], X.shape[1], 1))
 
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
-    model.add(LSTM(units=50))
-    model.add(Dense(1))
+# =============================
+# Modelo LSTM
+# =============================
+model = Sequential()
+model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
+model.add(LSTM(units=50))
+model.add(Dense(units=1))
 
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    model.fit(X_train, y_train, epochs=10, batch_size=32)
+model.compile(optimizer='adam', loss='mean_squared_error')
+model.fit(X, y, epochs=10, batch_size=32)
 
-    y_pred = model.predict(X_test)
-    avaliar_modelo(y_test, y_pred, scaler=scaler, salvar_grafico=True)
+# =============================
+# Salva modelo e scaler
+# =============================
+model_path = os.path.join(os.path.dirname(__file__), "model_lstm.h5")
+model.save(model_path)
 
-    os.makedirs("model", exist_ok=True)
-    model.save("model/model_lstm.h5")
+scaler_path = os.path.join(os.path.dirname(__file__), "scaler.pkl")
+joblib.dump(scaler, scaler_path)
 
-    # Salva o scaler completo
-    np.save("model/scaler.npy", scaler, allow_pickle=True)
+print("Treinamento concluído e arquivos salvos.")
 
-    # Reverte normalização
-    y_test_orig = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
-    y_pred_orig = scaler.inverse_transform(y_pred).flatten()
-
-    df_results = pd.DataFrame({
-        'Real': y_test_orig,
-        'Previsto': y_pred_orig
-    })
-    df_results.to_csv("model/resultados.csv", index=False)
-
-    resultados_json = df_results.to_dict(orient="records")
-    with open("model/resultados.json", "w") as f:
-        json.dump(resultados_json, f, indent=2)
-
-if __name__ == "__main__":
-    train_and_save_model()
+print(f"Modelo salvo em {model_path}")
+print(f"Scaler salvo em {scaler_path}")

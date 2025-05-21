@@ -70,12 +70,16 @@ pip install -r requirements.txt
 
 
 Como Rodar
+
 # Treinamento do Modelo
+Salve o arquivo CSV da ação desejada (ex: BBAS3.SA.csv) na pasta data/raw/.
+
 Para treinar o modelo LSTM com os dados de ações, execute o seguinte comando:
 
-python model/train.py
+python -m model.train
 
-Essa etapa irá baixar os dados históricos de preços da ação APPLE (usando a biblioteca yfinance), pré-processá-los e treinar o modelo LSTM. Após o treinamento, o modelo será salvo como model/model_lstm.h5 e o scaler como model/scaler.npy.
+
+Essa etapa irá baixar os dados históricos de preços da ação BBAS3 (usando a biblioteca yfinance), pré-processá-los e treinar o modelo LSTM. Após o treinamento, o modelo será salvo como model/model_lstm.h5 e o scaler como model/scaler.npy.
 
 
 
@@ -85,6 +89,18 @@ A API está desenvolvida com FastAPI e pode ser executada com o comando abaixo:
 uvicorn app.main:app --reload
 A API estará disponível em http://127.0.0.1:8000 e a documentação da API pode ser acessada em http://127.0.0.1:8000/docs e http://127.0.0.1:8000/redoc
 
+Como testar a API
+Você pode usar o Swagger UI para fazer chamadas ou usar o curl/Postman com o seguinte JSON:
+POST /predict
+{
+  "closing_prices": [12.4, 12.6, 12.8, ..., 13.5]  // Exatamente 60 valores
+}
+
+
+A resposta será:
+{
+  "prediction": 13.75
+}
 
 
 # Fazer Previsões
@@ -92,7 +108,7 @@ A API possui um endpoint POST /predict/ onde você pode enviar uma solicitação
 
 json
 {
-  "symbol": "AAPL",
+  "symbol": "BBAS3",
   "lookback": 60,
   "start": "2020-01-01",
   "end": "2024-01-01",
@@ -127,6 +143,45 @@ As dependências estão listadas em requirements.txt. Para instalar:
 
 pip install -r requirements.txt
 
+
+
+## Modelo e Decisões Técnicas
+Usamos LSTM (Long Short-Term Memory) por sua eficácia em séries temporais financeiras.
+
+A entrada da rede é composta por janelas deslizantes de 60 dias de preços de fechamento normalizados.
+
+Normalização com MinMaxScaler para que os dados fiquem na faixa [0, 1].
+
+Arquitetura da rede:
+
+LSTM (50 unidades) → LSTM (50 unidades) → Dense(1)
+
+Função de perda: mean_squared_error, Otimizador: adam
+
+Salvo com TensorFlow .h5 e joblib (.pkl) para reutilização.
+
+---
+
+###  Explicação do modelo LSTM
+- **Motivação**: O problema trata de uma série temporal financeira. LSTMs são mais adequadas para capturar dependências de longo prazo do que redes feedforward simples.
+  
+- **Arquitetura escolhida**:
+  - 2 camadas LSTM com 50 unidades cada
+  - 1 camada final `Dense(1)` para prever o próximo valor
+  - Epochs: 10 (ajustável), batch_size: 32
+
+- **Entradas do modelo**:
+  - 60 valores consecutivos de preços de fechamento normalizados.
+  - Normalização feita com `MinMaxScaler`.
+
+- **Saída**:
+  - Um único valor contínuo: **o próximo preço de fechamento previsto** (já desnormalizado para facilitar interpretação).
+
+- **Salvamento**:
+  - `.h5`: modelo treinado (TensorFlow)
+  - `.pkl`: scaler usado para normalizar dados, necessário para preparar futuras entradas
+
+---
 
 # Modelos e Métricas
 O modelo utiliza uma rede LSTM para capturar padrões temporais nos dados de preços das ações.
