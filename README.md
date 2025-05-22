@@ -26,60 +26,60 @@ Antes de rodar o projeto, certifique-se de ter os seguintes requisitos instalado
 	- Docker (opcional, mas recomendado para conteinerização e deploy)
 
 
-stock_predictor_lstm/
-├── app/                            # Código principal da API e scripts auxiliares
-│   ├── __init__.py                 # Permite importar a pasta como módulo
-│   ├── exploracao_preprocess.ipynb# Notebook de pré-processamento e exploração
-│   ├── fetch_data.py              # Script para buscar dados de fontes externas
-│   ├── main.py                    # Arquivo principal da API (FastAPI)
-│   ├── model.py                   # Funções de inferência usando o modelo treinado
-│   ├── preprocessing.py           # Funções de transformação de dados (scaling etc.)
-│   ├── schema.py                  # Modelos Pydantic para validação de entrada/saída
-│   └── start.sh                   # Script de inicialização da API no Docker
-│
-├── data/                           # Armazenamento de dados brutos ou processados
-│   ├── raw/                        # Dados crus utilizados no projeto
-│   │   ├── BBAS3.SA.csv            # Base de dados principal de ações BBAS3
-│   │   └── novos_dados.csv         # Arquivo de dados novos para testes
-│   ├── download_data.py           # Script para baixar dados de forma programada
-│   └── teste.py                   # Script de testes locais com dados
-│
-├── model/                          # Treinamento e artefatos do modelo
-│   ├── __init__.py
-│   ├── download_data.py           # Script auxiliar para coleta de dados para treino
-│   ├── model_lstm.h5              # Arquivo com o modelo LSTM treinado
-│   ├── scaler.npy                 # Scaler salvo em formato NumPy
-│   ├── scaler.pkl                 # Scaler salvo com joblib (preferido para produção)
-│   ├── scaler.save                # Versão alternativa do scaler
-│   ├── resultados.csv             # Métricas e previsões geradas
-│   ├── resultados.json            # Métricas em formato JSON
-│   └── train.py                   # Script principal de treinamento do modelo
-│
-├── monitor/                        # Scripts de monitoramento do modelo em produção
-│   └── monitor.py                 # Verifica performance e saúde do modelo
-│
-├── notebooks/                      # Notebooks exploratórios
-│   └── exploracao.ipynb           # Análise exploratória dos dados
-│
-├── scripts/                        # Scripts diversos para testes e automações
-│   ├── predict.py                 # Testes manuais de previsão usando o modelo
-│   └── teste_api.py               # Script para testar os endpoints da API
-│
-├── .dockerignore                  # Ignora arquivos/pastas no contexto do Docker
-├── .env.dev                       # Variáveis de ambiente para ambiente de desenvolvimento
-├── .env.example                   # Exemplo de template de variáveis de ambiente
-├── .env.prod                      # Variáveis de ambiente para ambiente de produção
-├── .gitignore                     # Arquivos/pastas ignoradas pelo Git
-├── docker-compose.yml            # Docker Compose base (usado em dev)
-├── docker-compose.override.yml   # Override para o Compose local
-├── docker-compose.prod.yml       # Configuração de Docker Compose para produção
-├── Dockerfile                     # Dockerfile base para dev
-├── Dockerfile.prod                # Dockerfile otimizado para produção
-├── grafico_avaliacao.png         # Imagem com avaliação do modelo
-├── README.md                      # Documentação do projeto
-├── requirements.txt              # Lista de dependências do projeto
-└── run_all.py                     # Script para rodar toda a pipeline de forma sequencial
-                                          
+		stock_predictor_lstm/
+		├── app/                            # Código principal da API e scripts auxiliares
+		│   ├── __init__.py                 # Permite importar a pasta como módulo
+		│   ├── exploracao_preprocess.ipynb # Notebook de pré-processamento e exploração
+		│   ├── fetch_data.py               # Script para buscar dados de fontes externas
+		│   ├── main.py                     # Arquivo principal da API (FastAPI)
+		│   ├── model.py                    # Funções de inferência usando o modelo treinado
+		│   ├── preprocessing.py            # Funções de transformação de dados (scaling etc.)
+		│   ├── schema.py                   # Modelos Pydantic para validação de entrada/saída
+		│   └── start.sh                    # Script de inicialização da API no Docker
+		│
+		├── data/                           # Armazenamento de dados brutos ou processados
+		│   ├── raw/                        # Dados crus utilizados no projeto
+		│   │   ├── BBAS3.SA.csv            # Base de dados principal de ações BBAS3
+		│   │   └── novos_dados.csv         # Arquivo de dados novos para testes
+		│   ├── download_data.py            # Script para baixar dados de forma programada
+		│   └── teste.py                    # Script de testes locais com dados
+		│
+		├── model/                          # Treinamento e artefatos do modelo
+		│   ├── __init__.py
+		│   ├── download_data.py           # Script auxiliar para coleta de dados para treino
+		│   ├── model_lstm.h5              # Arquivo com o modelo LSTM treinado
+		│   ├── scaler.npy                 # Scaler salvo em formato NumPy
+		│   ├── scaler.pkl                 # Scaler salvo com joblib (preferido para produção)
+		│   ├── scaler.save                # Versão alternativa do scaler
+		│   ├── resultados.csv             # Métricas e previsões geradas
+		│   ├── resultados.json            # Métricas em formato JSON
+		│   └── train.py                   # Script principal de treinamento do modelo
+		│
+		├── monitor/                       # Scripts de monitoramento do modelo em produção
+		│   └── monitor.py                 # Verifica performance e saúde do modelo
+		│
+		├── notebooks/                     # Notebooks exploratórios
+		│   └── exploracao.ipynb           # Análise exploratória dos dados
+		│
+		├── scripts/                       # Scripts diversos para testes e automações
+		│   ├── predict.py                 # Testes manuais de previsão usando o modelo
+		│   └── teste_api.py               # Script para testar os endpoints da API
+		│
+		├── .dockerignore                  # Ignora arquivos/pastas no contexto do Docker
+		├── .env.dev                       # Variáveis de ambiente para ambiente de desenvolvimento
+		├── .env.example                   # Exemplo de template de variáveis de ambiente
+		├── .env.prod                      # Variáveis de ambiente para ambiente de produção
+		├── .gitignore                     # Arquivos/pastas ignoradas pelo Git
+		├── docker-compose.yml             # Docker Compose base (usado em dev)
+		├── docker-compose.override.yml    # Override para o Compose local
+		├── docker-compose.prod.yml        # Configuração de Docker Compose para produção
+		├── Dockerfile                     # Dockerfile base para dev
+		├── Dockerfile.prod                # Dockerfile otimizado para produção
+		├── grafico_avaliacao.png          # Imagem com avaliação do modelo
+		├── README.md                      # Documentação do projeto
+		├── requirements.txt               # Lista de dependências do projeto
+		└── run_all.py                     # Script para rodar toda a pipeline de forma sequencial
+
 
 
 ## Como rodar o projeto:
