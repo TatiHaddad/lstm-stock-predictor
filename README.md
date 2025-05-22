@@ -85,37 +85,97 @@ Antes de rodar o projeto, certifique-se de ter os seguintes requisitos instalado
 ## Como rodar o projeto:
 # Instalação
 Clone este repositório:
-
-git clone https://github.com/TatiHaddad/lstm-stock-predictor.git
-cd lstm-stock-predictor
+	git clone https://github.com/TatiHaddad/lstm-stock-predictor.git
+	cd lstm-stock-predictor
 
 
 # Crie um ambiente virtual e instale as dependências:
-
-python3 -m venv venv
-source venv/bin/activate  # No Windows use venv\Scripts\activate
-pip install -r requirements.txt
-
+	python3 -m venv venv
+	source venv/bin/activate  # No Windows use venv\Scripts\activate
+	pip install -r requirements.txt
 
 
-Como Rodar
+##Como Rodar
+Este projeto pode ser executado de três formas principais:
+
+#1. Ambiente de Desenvolvimento com Docker
+Pré-requisitos:
+	Docker e Docker Compose instalados
+	Arquivo .env.dev configurado (ou copie de .env.example)
+
+
+# Suba o ambiente em modo desenvolvimento
+	docker-compose up --build
+ 
+A API estará disponível em: http://localhost:8000
+
+Swagger docs: http://localhost:8000/docs
+
+
+#2. Ambiente de Produção com Docker
+Pré-requisitos:
+	Docker instalado
+	Arquivo .env.prod configurado
+
+
+# Suba o ambiente de produção
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+
+A API estará disponível em: http://<seu_ip>:8000
+
+
+#3. Rodar Localmente (sem Docker)
+Pré-requisitos:
+	Python 3.10+
+	Ambiente virtual ativo
+
+Instalar dependências:
+	pip install -r requirements.txt
+
+
+Executar API:
+	uvicorn app.main:app --reload
+ 
+Rodar Pipeline Completa (coleta, treino, predição)
+
+# Executa todo o processo fim a fim
+	python run_all.py
+
+Testar a API com script
+
+# Envia uma requisição POST para /predict
+	python scripts/teste_api.py
+
+
+Verificar se a API está online
+Acesse no navegador ou via curl:
+	curl http://localhost:8000/
+
 
 # Treinamento do Modelo
-Salve o arquivo CSV da ação desejada (ex: BBAS3.SA.csv) na pasta data/raw/.
+Para treinar ou re-treinar o modelo LSTM com os dados históricos:
+	python model/train.py
+	Isso irá:
+		Carregar os dados do Yahoo Finance (se necessário)
+		Normalizar e preparar os dados
+		Treinar o modelo LSTM
+		Salvar os arquivos: model_lstm.h5 e scaler.pkl
+*Essa etapa irá baixar os dados históricos de preços da ação BBAS3 (usando a biblioteca yfinance), pré-processá-los e treinar o modelo LSTM. 
 
-Para treinar o modelo LSTM com os dados de ações, execute o seguinte comando:
 
-python -m model.train
-
-
-Essa etapa irá baixar os dados históricos de preços da ação BBAS3 (usando a biblioteca yfinance), pré-processá-los e treinar o modelo LSTM. Após o treinamento, o modelo será salvo como model/model_lstm.h5 e o scaler como model/scaler.npy.
-
+#Monitorar a Performance do Modelo
+Para executar a checagem e monitoramento de desempenho com novos dados:
+	python monitor/monitor.py
+	Esse script realiza:
+		Avaliação da performance do modelo com dados recentes
+		Comparação entre previsão e valor real
+		Geração de métricas ou alertas (a depender da lógica implementada)
 
 
 # Iniciar a API
 A API está desenvolvida com FastAPI e pode ser executada com o comando abaixo:
+	uvicorn app.main:app --reload
 
-uvicorn app.main:app --reload
 A API estará disponível em http://127.0.0.1:8000 e a documentação da API pode ser acessada em http://127.0.0.1:8000/docs e http://127.0.0.1:8000/redoc
 
 Como testar a API
