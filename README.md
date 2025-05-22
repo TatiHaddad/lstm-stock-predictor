@@ -4,53 +4,82 @@
 
 Este projeto faz parte do Tech Challenge da fase 4 da Pós Graduação de Engenharia de Machine Learning da FIAP.
 
-
 Deep Learning e IA 
-O desafio é criar um Modelo preditivo de Redes Neurais **Long Short Term Memory (LSTM)** para predizer o valor de fechamento da bolsa de valores de uma empresa à sua escolha e realizar toda a pipeline de desenvolvimento, 
-desde a criação do modelo preditivo até o deploy do modelo em uma API que permita a previsão de preços de ações. 
+
+O desafio é criar um Modelo preditivo de Redes Neurais **Long Short Term Memory (LSTM)** para predizer o valor de fechamento da bolsa de valores de uma empresa à sua escolha e realizar toda a pipeline de desenvolvimento, desde a criação do modelo preditivo até o deploy do modelo em uma API que permita a previsão de preços de ações. 
  
- A previsão é realizada com base em dados históricos de preços de ações, coletados da plataforma **Yahoo Finance**. O modelo é então servido por uma API **FastAPI** que permite que os usuários forneçam dados históricos e recebam previsões dos preços futuros.
+A previsão é realizada com base em dados históricos de preços de ações, coletados da plataforma **Yahoo Finance**. O modelo é então servido por uma API **FastAPI** que permite que os usuários forneçam dados históricos e recebam previsões dos preços futuros.
 
 
 ## Funcionalidades:
-- Treinamento de modelo LSTM com dados históricos de ações
-- Servidor FastAPI com endpoint para previsão
-- Pré-processamento e normalização automática dos dados
-- Container Docker pronto para produção
+	- Treinamento de modelo LSTM com dados históricos de ações
+	- Servidor FastAPI com endpoint para previsão
+	- Pré-processamento e normalização automática dos dados
+	- Container Docker pronto para produção
 
 
 ## Requisitos
 
 Antes de rodar o projeto, certifique-se de ter os seguintes requisitos instalados:
 
-- Python 3.x
-- Docker (opcional, mas recomendado para contêinerização e deploy)
+	- Python 3.x
+	- Docker (opcional, mas recomendado para conteinerização e deploy)
 
-
-## Estrutura de Diretórios
 
 stock_predictor_lstm/
-├── app/
-│   ├── main.py               # API FastAPI para previsões
-│   ├── model.py              # Código para carregar e usar o modelo treinado
-│   ├── preprocessing.py      # Funções de limpeza e transformação dos dados
-│   ├── schema.py             # Modelos Pydantic (validação de entrada)
+├── app/                            # Código principal da API e scripts auxiliares
+│   ├── __init__.py                 # Permite importar a pasta como módulo
+│   ├── exploracao_preprocess.ipynb# Notebook de pré-processamento e exploração
+│   ├── fetch_data.py              # Script para buscar dados de fontes externas
+│   ├── main.py                    # Arquivo principal da API (FastAPI)
+│   ├── model.py                   # Funções de inferência usando o modelo treinado
+│   ├── preprocessing.py           # Funções de transformação de dados (scaling etc.)
+│   ├── schema.py                  # Modelos Pydantic para validação de entrada/saída
+│   └── start.sh                   # Script de inicialização da API no Docker
 │
-├── data/                     # Dados brutos ou pré-processados
-│   └── raw/                  # CSVs originais baixados do Yahoo Finance
+├── data/                           # Armazenamento de dados brutos ou processados
+│   ├── raw/                        # Dados crus utilizados no projeto
+│   │   ├── BBAS3.SA.csv            # Base de dados principal de ações BBAS3
+│   │   └── novos_dados.csv         # Arquivo de dados novos para testes
+│   ├── download_data.py           # Script para baixar dados de forma programada
+│   └── teste.py                   # Script de testes locais com dados
 │
-├── model/                    # Modelos salvos 
-│   ├── train.py              # Treinamento do modelo LSTM
-│   └── model_lstm.h5         # Modelo treinado (será gerado)
-│   └── scaler.npy            # Parâmetros de normalização
-├── notebooks/
-│   └── exploracao.ipynb      # Notebook de EDA (exploração de dados)
+├── model/                          # Treinamento e artefatos do modelo
+│   ├── __init__.py
+│   ├── download_data.py           # Script auxiliar para coleta de dados para treino
+│   ├── model_lstm.h5              # Arquivo com o modelo LSTM treinado
+│   ├── scaler.npy                 # Scaler salvo em formato NumPy
+│   ├── scaler.pkl                 # Scaler salvo com joblib (preferido para produção)
+│   ├── scaler.save                # Versão alternativa do scaler
+│   ├── resultados.csv             # Métricas e previsões geradas
+│   ├── resultados.json            # Métricas em formato JSON
+│   └── train.py                   # Script principal de treinamento do modelo
 │
-├── requirements.txt          # Dependências do projeto
-├── Dockerfile                # Dockerfile para deploy da API
-├── .gitignore                # Arquivos ignorados pelo Git
-├── .env                      # Variáveis de ambiente
-└── README.md                 # Documentação do projeto
+├── monitor/                        # Scripts de monitoramento do modelo em produção
+│   └── monitor.py                 # Verifica performance e saúde do modelo
+│
+├── notebooks/                      # Notebooks exploratórios
+│   └── exploracao.ipynb           # Análise exploratória dos dados
+│
+├── scripts/                        # Scripts diversos para testes e automações
+│   ├── predict.py                 # Testes manuais de previsão usando o modelo
+│   └── teste_api.py               # Script para testar os endpoints da API
+│
+├── .dockerignore                  # Ignora arquivos/pastas no contexto do Docker
+├── .env.dev                       # Variáveis de ambiente para ambiente de desenvolvimento
+├── .env.example                   # Exemplo de template de variáveis de ambiente
+├── .env.prod                      # Variáveis de ambiente para ambiente de produção
+├── .gitignore                     # Arquivos/pastas ignoradas pelo Git
+├── docker-compose.yml            # Docker Compose base (usado em dev)
+├── docker-compose.override.yml   # Override para o Compose local
+├── docker-compose.prod.yml       # Configuração de Docker Compose para produção
+├── Dockerfile                     # Dockerfile base para dev
+├── Dockerfile.prod                # Dockerfile otimizado para produção
+├── grafico_avaliacao.png         # Imagem com avaliação do modelo
+├── README.md                      # Documentação do projeto
+├── requirements.txt              # Lista de dependências do projeto
+└── run_all.py                     # Script para rodar toda a pipeline de forma sequencial
+                                          
 
 
 ## Como rodar o projeto:
