@@ -8,6 +8,12 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Grandes Arquivos do modelo
+model/*.h5
+model/*.pkl
+mlruns/
+
+
 # Dados locais e arquivos de build
 *.db
 *.sqlite3

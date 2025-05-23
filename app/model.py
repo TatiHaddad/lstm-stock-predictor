@@ -1,16 +1,34 @@
+import os
 import numpy as np
 import joblib
 from tensorflow.keras.models import load_model
-import os
+from dotenv import load_dotenv
 
-# Caminhos absolutos relativos à pasta atual
+# Carrega variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Diretório base do projeto (nível raiz)
 base_dir = os.path.dirname(__file__)
-model_path = os.path.join(base_dir, "..", "model", "model_lstm.h5")
-scaler_path = os.path.join(base_dir, "..", "model", "scaler.pkl")
+model_dir = os.path.abspath(os.path.join(base_dir, "..", "model"))
 
-# Carrega modelo e scaler na inicialização
-model = load_model(model_path)
-scaler = joblib.load(scaler_path)
+# Recupera valores do .env ou usa fallback para arquivos *_latest
+model_filename = os.getenv("MODEL_PATH", os.path.join("model", "model_lstm_latest.h5"))
+scaler_filename = os.getenv("SCALER_PATH", os.path.join("model", "scaler_latest.pkl"))
+
+# Caminhos absolutos
+model_path = os.path.abspath(os.path.join(base_dir, "..", model_filename))
+scaler_path = os.path.abspath(os.path.join(base_dir, "..", scaler_filename))
+
+# Carrega modelo e scaler
+try:
+    model = load_model(model_path)
+except Exception as e:
+    raise FileNotFoundError(f"Erro ao carregar o modelo: {model_path}. Detalhes: {str(e)}")
+
+try:
+    scaler = joblib.load(scaler_path)
+except Exception as e:
+    raise FileNotFoundError(f"Erro ao carregar o scaler: {scaler_path}. Detalhes: {str(e)}")
 
 def predict_next_price(prices: list) -> float:
     try:
@@ -18,7 +36,7 @@ def predict_next_price(prices: list) -> float:
         prices_array = np.array(prices).reshape(-1, 1)
         scaled = scaler.transform(prices_array)
 
-        # Prepara a entrada
+        # Prepara a entrada para o modelo
         X = np.reshape(scaled, (1, len(prices), 1))
 
         # Faz a predição
@@ -26,5 +44,6 @@ def predict_next_price(prices: list) -> float:
         prediction = scaler.inverse_transform(prediction_scaled)[0][0]
 
         return round(float(prediction), 2)
+
     except Exception as e:
         raise RuntimeError(f"Erro ao prever: {str(e)}")
