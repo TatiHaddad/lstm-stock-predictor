@@ -6,18 +6,29 @@ import os
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 import mlflow
 
 # Configura diretório de modelo
 MODEL_DIR = "model"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-# Carrega dados
-data = pd.read_csv("data/raw/BBAS3.SA.csv")
+# Lê o CSV ignorando as linhas 2 e 3
+data = pd.read_csv("data/raw/BBAS3.SA.csv", skiprows=[1, 2])
+
+# Renomeia a coluna 'Price' para 'Date'
+data.rename(columns={'Price': 'Date'}, inplace=True)
+
+# Converte a coluna Date para datetime
+data['Date'] = pd.to_datetime(data['Date'])
 prices = data["Close"].values.reshape(-1, 1)
 
 # Preprocessamento
 scaler = MinMaxScaler()
+
+print(data.head())
+print(prices[:5])
+
 scaled_prices = scaler.fit_transform(prices)
 
 # Cria sequências de treino
@@ -40,8 +51,19 @@ model = Sequential([
 model.compile(optimizer='adam', loss='mean_squared_error')
 
 # Treinamento com MLflow
+
+# Define o nome do experimento
+mlflow.set_experiment("Stock_Predictor_LSTM")
+
+EPOCHS = 50
+BATCH_SIZE = 32
+VERBOSE = 1
+
 with mlflow.start_run():
-    model.fit(X, y, epochs=50, batch_size=32, verbose=1)
+    model.fit(X, y, epochs=EPOCHS, batch_size=BATCH_SIZE, verbose=VERBOSE)
+    mlflow.log_param("epochs", EPOCHS)
+    mlflow.log_param("batch_size", BATCH_SIZE)
+    mlflow.log_param("verbose", VERBOSE)
 
     # Versionamento por timestamp
     version = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -68,3 +90,10 @@ with mlflow.start_run():
 with open(".env.dev", "w") as f:
     f.write(f"MODEL_VERSION=model_lstm_{version}\n")
     f.write(f"SCALER_VERSION=scaler_{version}\n")
+
+
+
+# calcula e loga o MSE
+y_pred = model.predict(X)
+mse = mean_squared_error(y, y_pred)
+mlflow.log_metric("mse", mse)

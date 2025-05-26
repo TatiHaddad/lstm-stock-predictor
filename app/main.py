@@ -1,10 +1,14 @@
 import os
+import time
 import logging
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 
 from app.schema import PredictRequest, PredictResponse
 from app.model import predict_next_price
+
+# Prometheus Instrumentation
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Carrega variáveis de ambiente do .env
 load_dotenv()
@@ -15,6 +19,9 @@ app = FastAPI(
     description="API para previsão de preço de fechamento de ações usando LSTM",
     version="1.0.0"
 )
+
+# Instrumenta e expõe métricas Prometheus
+Instrumentator().instrument(app).expose(app)
 
 # Configura logging com base na variável de ambiente
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -41,6 +48,7 @@ def read_root():
 
 @app.post("/predict", response_model=PredictResponse, tags=["Previsão"])
 def predict(request: PredictRequest):
+    start_time = time.time()
     logger.info("Requisição recebida para previsão.")
 
     if len(request.closing_prices) < 60:
@@ -49,7 +57,8 @@ def predict(request: PredictRequest):
 
     try:
         prediction = predict_next_price(request.closing_prices)
-        logger.info(f"Previsão gerada: {prediction}")
+        duration = time.time() - start_time
+        logger.info(f"Previsão gerada em {duration:.4f} segundos: {prediction}")
         return PredictResponse(prediction=prediction)
     except Exception as e:
         logger.exception("Erro ao realizar previsão")
