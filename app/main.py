@@ -46,6 +46,17 @@ def read_root():
         logger.exception("Erro no endpoint de health check")
         raise HTTPException(status_code=500, detail="Erro interno")
 
+
+@app.get("/predict", tags=["Instruções"])
+def predict_get_info():
+    return {
+        "message": "Use o método POST neste endpoint para enviar os preços e obter uma previsão.",
+        "exemplo": {
+            "closing_prices": [100.0, 101.5, 102.3, "... mínimo 60 valores"]
+        }
+    }
+
+
 @app.post("/predict", response_model=PredictResponse, tags=["Previsão"])
 def predict(request: PredictRequest):
     start_time = time.time()
