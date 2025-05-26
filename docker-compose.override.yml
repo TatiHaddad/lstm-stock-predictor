@@ -1,0 +1,20 @@
+services:
+  app:
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./mlruns:/app/mlruns
+    env_file:
+      - .env.dev
+    environment:
+      - ENVIRONMENT=dev
+      - LOG_LEVEL=debug
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+    command: mlflow ui --backend-store-uri /mlflow/mlruns
