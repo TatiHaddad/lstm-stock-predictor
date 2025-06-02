@@ -1,4 +1,6 @@
 # Modelo Preditivo de Preços de Ações com LSTM
+# Previsão de Preços de Ações BBAS3 com LSTM – API FastAPI com Deploy em Docker
+
 
 ## Descrição do Projeto
 
@@ -85,8 +87,10 @@ Antes de rodar o projeto, certifique-se de ter os seguintes requisitos instalado
 ## Como rodar o projeto:
 # Instalação
 Clone este repositório:
-		git clone https://github.com/TatiHaddad/lstm-stock-predictor.git
-		cd lstm-stock-predictor
+
+	git clone https://github.com/TatiHaddad/lstm-stock-predictor.git
+	cd lstm-stock-predictor
+
 
 
 # Crie um ambiente virtual e instale as dependências:
@@ -95,10 +99,10 @@ Clone este repositório:
 	pip install -r requirements.txt
 
 
-##Como Rodar
+## Como Rodar
 Este projeto pode ser executado de três formas principais:
 
-#1. Ambiente de Desenvolvimento com Docker
+### 1. Ambiente de Desenvolvimento com Docker
 Pré-requisitos:
 	Docker e Docker Compose instalados
 	Arquivo .env.dev configurado (ou copie de .env.example)
@@ -108,11 +112,10 @@ Pré-requisitos:
 	docker-compose up --build
  
 A API estará disponível em: http://localhost:8000
-
 Swagger docs: http://localhost:8000/docs
 
 
-#2. Ambiente de Produção com Docker
+### 2. Ambiente de Produção com Docker
 Pré-requisitos:
 	Docker instalado
 	Arquivo .env.prod configurado
@@ -124,18 +127,21 @@ Pré-requisitos:
 A API estará disponível em: http://<seu_ip>:8000
 
 
-#3. Rodar Localmente (sem Docker)
+### 3. Rodar Localmente (sem Docker)
 Pré-requisitos:
 	Python 3.10+
 	Ambiente virtual ativo
 
 Instalar dependências:
+	
 	pip install -r requirements.txt
 
 
 Executar API:
+		
 	uvicorn app.main:app --reload
- 
+
+  
 Rodar Pipeline Completa (coleta, treino, predição)
 
 # Executa todo o processo fim a fim
@@ -154,8 +160,10 @@ Acesse no navegador ou via curl:
 
 # Treinamento do Modelo
 Para treinar ou re-treinar o modelo LSTM com os dados históricos:
+
 	python model/train.py
-	Isso irá:
+
+ Isso irá:
 		Carregar os dados do Yahoo Finance (se necessário)
 		Normalizar e preparar os dados
 		Treinar o modelo LSTM
@@ -163,7 +171,7 @@ Para treinar ou re-treinar o modelo LSTM com os dados históricos:
 *Essa etapa irá baixar os dados históricos de preços da ação BBAS3 (usando a biblioteca yfinance), pré-processá-los e treinar o modelo LSTM. 
 
 
-#Monitorar a Performance do Modelo
+# Monitorar a Performance do Modelo
 Para executar a checagem e monitoramento de desempenho com novos dados:
 	python monitor/monitor.py
 	Esse script realiza:
@@ -172,65 +180,90 @@ Para executar a checagem e monitoramento de desempenho com novos dados:
 		Geração de métricas ou alertas (a depender da lógica implementada)
 
 
+
+## API - Endpoints e Testes
+
+### Endpoint principal
+
 # Iniciar a API
 A API está desenvolvida com FastAPI e pode ser executada com o comando abaixo:
+
 	uvicorn app.main:app --reload
 
 A API estará disponível em http://127.0.0.1:8000 e a documentação da API pode ser acessada em http://127.0.0.1:8000/docs e http://127.0.0.1:8000/redoc
 
 Como testar a API
 Você pode usar o Swagger UI para fazer chamadas ou usar o curl/Postman com o seguinte JSON:
-POST /predict
-{
-  "closing_prices": [12.4, 12.6, 12.8, ..., 13.5]  // Exatamente 60 valores
-}
+
+**POST /predict**
+
+**Exemplo de payload**:
+JSON
+
+	{
+	  "closing_prices": [12.4, 12.6, ..., 13.5]
+	}
 
 
 A resposta será:
-{
-  "prediction": 13.75
-}
+	
+	{
+	  "prediction": 13.75
+	}
 
 
 # Fazer Previsões
 A API possui um endpoint POST /predict/ onde você pode enviar uma solicitação para obter previsões de preços de ações. Exemplo de corpo de solicitação:
 
-json
-{
-  "symbol": "BBAS3",
-  "lookback": 60,
-  "start": "2020-01-01",
-  "end": "2024-01-01",
-  "incluir_grafico": true
-}
+JSON
+
+	{
+	  "symbol": "BBAS3",
+	  "lookback": 60,
+	  "start": "2020-01-01",
+	  "end": "2024-01-01",
+	  "incluir_grafico": true
+	}
+
+
+Resposta esperada:
+	
+	{
+	  "prediction": 15.32,
+	  "grafico": "base64..." // se incluir gráfico
+	}
 
 
 ## Como rodar com o Docker
 # Docker
 Se preferir, você pode executar o projeto dentro de um contêiner Docker. Para isso, use o comando:
-##Builda da Imagem:
-docker build -t stock_predictor_lstm .
+## Builda da Imagem:
+	
+	docker build -t stock_predictor_lstm .
 
-##Rode o container
-docker run -p 8000:8000 stock_predictor_lstm
+## Rode o container
+	
+	docker run -p 8000:8000 stock_predictor_lstm
+
 A API será disponibilizada em http://127.0.0.1:8000.
 
-#Endpoints
+# Endpoints
 Método: POST
 Endpoint: /predict
 Descrição: Faz a previsão do próximo valor com base na sequência de entrada
 
 Exemplo de payload:
-{
-  "data": [135.6, 136.2, 137.8, 138.9, 139.4]
-}
+
+	{
+	  "data": [135.6, 136.2, 137.8, 138.9, 139.4]
+	}
 
 
 
 # Dependências
 As dependências estão listadas em requirements.txt. Para instalar:
-
-pip install -r requirements.txt
+	
+	pip install -r requirements.txt
 
 
 
@@ -286,6 +319,8 @@ O desempenho do modelo é avaliado com as seguintes métricas:
 A avaliação do modelo pode ser feita diretamente na API, que retornará as métricas de desempenho juntamente com a previsão.
 
 
+## Autores
 
-# Escalabilidade e Deploy
-Este projeto está preparado para ser escalável com o uso de contêineres Docker, permitindo fácil deploy em ambientes de nuvem como AWS, Google Cloud, ou Azure. O deploy em nuvem permitirá o uso da API em produção, acessível via URL pública.
+- Tatiana M. Haddad – [@TatiHaddad](https://github.com/TatiHaddad)
+- Victor Santos 
+Este projeto foi desenvolvido como parte do Tech Challenge da Fase 4 da Pós em Engenharia de Machine Learning - FIAP
