@@ -1,6 +1,5 @@
-# Modelo Preditivo de Preços de Ações com LSTM
 # Previsão de Preços de Ações BBAS3 com LSTM – API FastAPI com Deploy em Docker
-
+Modelo Preditivo de Preços de Ações com LSTM
 
 ## Descrição do Projeto
 
@@ -323,4 +322,3 @@ A avaliação do modelo pode ser feita diretamente na API, que retornará as mé
 
 - Tatiana M. Haddad – [@TatiHaddad](https://github.com/TatiHaddad)
 - Victor Santos 
-Este projeto foi desenvolvido como parte do Tech Challenge da Fase 4 da Pós em Engenharia de Machine Learning - FIAP
