@@ -196,41 +196,27 @@ Você pode usar o Swagger UI para fazer chamadas ou usar o curl/Postman com o se
 
 **POST /predict**
 
+# Fazer Previsões
+A API possui um endpoint POST /predict/ onde você pode enviar uma solicitação para obter previsões de preços de ações. Exemplo de corpo de solicitação:
+
 **Exemplo de payload**:
 JSON
 
 	{
-	  "closing_prices": [12.4, 12.6, ..., 13.5]
+	  "closing_prices": [12.4, 12.6, 10.5, 13.5, 12.4, 12.4, 12.4,  10.5,  10.5,  10.5,  10.5, 10.5, 10.5, 12.6, 12.6 , 12.6, 12.6, 12.6, 12.6, 13.5 , 13.5, 13.5, 13.5, 13.5, 13.5, 13.5, 13.5, 13.5, 13.5, 13.5, 13.5, 13.5, 12.4, 12.6, 10.5, 13.5, 12.4, 12.4, 12.6, 10.5, 13.5, 12.4, 12.4, 12.6, 10.5, 13.5, 12.4, 12.4, 12.4,  10.5,  10.5,  10.5,  10.5, 10.5, 10.5, 12.6, 12.6 , 12.6, 12.6, 12.6]
 	}
-
+ 
 
 A resposta será:
 	
 	{
-	  "prediction": 13.75
+	  "prediction": 12.57
 	}
 
 
 # Fazer Previsões
 A API possui um endpoint POST /predict/ onde você pode enviar uma solicitação para obter previsões de preços de ações. Exemplo de corpo de solicitação:
 
-JSON
-
-	{
-	  "symbol": "BBAS3",
-	  "lookback": 60,
-	  "start": "2020-01-01",
-	  "end": "2024-01-01",
-	  "incluir_grafico": true
-	}
-
-
-Resposta esperada:
-	
-	{
-	  "prediction": 15.32,
-	  "grafico": "base64..." // se incluir gráfico
-	}
 
 
 ## Como rodar com o Docker
@@ -254,7 +240,7 @@ Descrição: Faz a previsão do próximo valor com base na sequência de entrada
 Exemplo de payload:
 
 	{
-	  "data": [135.6, 136.2, 137.8, 138.9, 139.4]
+	  "closing_prices": [135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4, 135.6, 136.2, 137.8, 138.9, 139.4] 
 	}
 
 
